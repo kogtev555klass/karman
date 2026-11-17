@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111616">
+  <meta name="description" content="Карман — быстрый учёт расходов.">
+  <title>Карман — учёт расходов</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body data-view="expense">
+  <div class="workspace">
+    <aside class="sidebar">
+      <a class="brand" href="./" aria-label="Карман, начальный экран">
+        <img src="./icon-192.png" alt="" width="37" height="37">
+        <span>Карман</span>
+      </a>
+      <nav class="navigation" aria-label="Разделы">
+        <button type="button" class="nav-button journal-button" id="show-journal">
+          <span class="icon icon-journal" aria-hidden="true"></span><span>Операции</span>
+        </button>
+        <button type="button" class="nav-button add-button" id="show-expense" aria-current="page">
+          <span class="icon icon-plus" aria-hidden="true"></span>
+          <span class="desktop-label">Новый расход</span>
+          <span class="mobile-label">Расход</span>
+        </button>
+      </nav>
+      <p class="store-status" id="offline-status"><span></span> Данные на устройстве</p>
+    </aside>
+
+    <main class="main">
+      <div class="main-header">
+        <div>
+          <h1>Операции</h1>
+          <p id="current-date"></p>
+        </div>
+        <button type="button" class="primary-button header-add" id="header-add">
+          <span class="icon icon-plus" aria-hidden="true"></span> Расход
+        </button>
+      </div>
+
+      <div class="panels">
+        <section class="ledger" aria-labelledby="ledger-title">
+          <div class="summary">
+            <div>
+              <p class="summary-label">Расходы за сегодня</p>
+              <p class="total" id="today-total">0 <span>₽</span></p>
+            </div>
+            <span class="summary-icon" aria-hidden="true">↘</span>
+          </div>
+
+          <div class="ledger-header">
+            <h2 id="ledger-title">Последние записи</h2>
+            <button type="button" class="text-button" id="download" hidden>Скачать копию</button>
+          </div>
+          <p class="list-caption" id="example-label">Пример журнала</p>
+          <ul class="entry-list" id="entries"></ul>
+          <p class="message" id="journal-error" role="alert" hidden></p>
+        </section>
+
+        <section class="composer" aria-labelledby="composer-title">
+          <div class="composer-header">
+            <div class="composer-heading">
+              <span class="expense-sign" aria-hidden="true">↘</span>
+              <h2 id="composer-title">Новый расход</h2>
+            </div>
+            <button type="button" class="icon-button" id="close-expense" aria-label="Закрыть форму">
+              <span class="icon icon-close" aria-hidden="true"></span>
+            </button>
+          </div>
+
+          <form id="expense-form" novalidate>
+            <div class="amount-block">
+              <label for="amount">Сумма</label>
+              <div class="amount-field">
+                <input id="amount" name="amount" type="text" inputmode="none" placeholder="0"
+                  autocomplete="off" aria-describedby="form-message" size="1">
+                <span aria-hidden="true">₽</span>
+              </div>
+            </div>
+
+            <div class="fields">
+              <label class="field field-account">
+                <span>Счёт</span>
+                <span class="select-wrap">
+                  <span id="account-dot" class="account-dot" aria-hidden="true"></span>
+                  <select id="account" name="account"></select>
+                </span>
+              </label>
+              <label class="field field-date">
+                <span>Дата</span>
+                <input id="expense-date" name="date" type="date" required>
+              </label>
+              <label class="field field-category">
+                <span>Категория</span>
+                <span class="select-wrap">
+                  <select id="category" name="category">
+                    <option value="">Без категории</option>
+                  </select>
+                </span>
+              </label>
+            </div>
+
+            <p class="message" id="form-message" role="status"></p>
+
+            <div class="keypad" id="keypad" role="group" aria-label="Цифровая клавиатура">
+              <button type="button" data-key="1">1</button>
+              <button type="button" data-key="2">2</button>
+              <button type="button" data-key="3">3</button>
+              <button type="button" data-key="4">4</button>
+              <button type="button" data-key="5">5</button>
+              <button type="button" data-key="6">6</button>
+              <button type="button" data-key="7">7</button>
+              <button type="button" data-key="8">8</button>
+              <button type="button" data-key="9">9</button>
+              <button type="button" data-key="," aria-label="Запятая">,</button>
+              <button type="button" data-key="0">0</button>
+              <button type="button" data-key="backspace" aria-label="Стереть последнюю цифру">⌫</button>
+            </div>
+            <button class="primary-button save-button" id="save-expense" type="submit">
+              Сохранить расход <span aria-hidden="true">↵</span>
+            </button>
+          </form>
+        </section>
+      </div>
+    </main>
+  </div>
+  <noscript>Включите JavaScript, чтобы записывать расходы.</noscript>
+</body>
+</html>
