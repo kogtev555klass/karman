@@ -1,5 +1,5 @@
 const cachePrefix = "karman-shell-" + self.registration.scope + "-";
-const cacheName = cachePrefix + "1";
+const cacheName = cachePrefix + "2";
 const home = self.registration.scope;
 const index = new URL("index.html", home).href;
 const shell = [

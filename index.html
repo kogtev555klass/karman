@@ -4,131 +4,190 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#111616">
-  <meta name="description" content="Карман — быстрый учёт расходов.">
-  <title>Карман — учёт расходов</title>
+  <meta name="description" content="Карман — учёт денег на устройстве.">
+  <title>Карман — учёт денег</title>
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="./apple-touch-icon.png">
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./app.js"></script>
 </head>
-<body data-view="expense">
+<body>
   <div class="workspace">
     <aside class="sidebar">
       <a class="brand" href="./" aria-label="Карман, начальный экран">
-        <img src="./icon-192.png" alt="" width="37" height="37">
-        <span>Карман</span>
+        <img src="./icon-192.png" alt="" width="37" height="37"><span>Карман</span>
       </a>
       <nav class="navigation" aria-label="Разделы">
-        <button type="button" class="nav-button journal-button" id="show-journal">
-          <span class="icon icon-journal" aria-hidden="true"></span><span>Операции</span>
+        <button type="button" class="nav-button" id="show-journal" aria-current="page">
+          <span class="icon icon-journal" aria-hidden="true"></span> Операции
         </button>
-        <button type="button" class="nav-button add-button" id="show-expense" aria-current="page">
-          <span class="icon icon-plus" aria-hidden="true"></span>
-          <span class="desktop-label">Новый расход</span>
-          <span class="mobile-label">Расход</span>
+        <button type="button" class="nav-button" id="show-accounts">
+          <span class="icon icon-wallet" aria-hidden="true"></span> Счета
         </button>
       </nav>
       <p class="store-status" id="offline-status"><span></span> Данные на устройстве</p>
     </aside>
 
     <main class="main">
-      <div class="main-header">
-        <div>
-          <h1>Операции</h1>
-          <p id="current-date"></p>
+      <p class="message page-message" id="page-message" role="alert" hidden></p>
+      <section id="journal" aria-labelledby="journal-title">
+        <header class="main-header">
+          <div>
+            <h1 id="journal-title">Операции</h1>
+            <p id="current-date"></p>
+          </div>
+          <label class="scope-picker">
+            <span id="scope-color" class="account-dot" data-color="mint" aria-hidden="true"></span>
+            <select id="scope" aria-label="Счёт или группа"><option value="all">Все счета</option></select>
+          </label>
+        </header>
+        <div id="periods" class="periods" role="group" aria-label="Период">
+          <button type="button" data-period="today" aria-pressed="false">Сегодня</button>
+          <button type="button" data-period="yesterday" aria-pressed="false">Вчера</button>
+          <button type="button" data-period="week" aria-pressed="true">Эта неделя</button>
+          <button type="button" data-period="month" aria-pressed="false">Этот месяц</button>
+          <button type="button" data-period="all" aria-pressed="false">Всё время</button>
         </div>
-        <button type="button" class="primary-button header-add" id="header-add">
-          <span class="icon icon-plus" aria-hidden="true"></span> Расход
-        </button>
-      </div>
+        <dl class="summary">
+          <div class="summary-balance"><dt>Текущий остаток</dt><dd id="balance">0 ₽</dd></div>
+          <div><dt>Доходы</dt><dd class="positive" id="income">0 ₽</dd></div>
+          <div><dt>Расходы</dt><dd class="negative" id="expenses">0 ₽</dd></div>
+          <div><dt>Баланс за период</dt><dd id="period-change">0 ₽</dd></div>
+        </dl>
+        <div class="section-heading ledger-header">
+          <h2>Журнал</h2>
+          <button type="button" class="text-button" id="download" hidden>Скачать копию</button>
+        </div>
+        <p class="empty" id="journal-empty">Нет операций за выбранный период</p>
+        <div id="entries" class="entries"></div>
+      </section>
 
-      <div class="panels">
-        <section class="ledger" aria-labelledby="ledger-title">
-          <div class="summary">
-            <div>
-              <p class="summary-label">Расходы за сегодня</p>
-              <p class="total" id="today-total">0 <span>₽</span></p>
-            </div>
-            <span class="summary-icon" aria-hidden="true">↘</span>
-          </div>
-
-          <div class="ledger-header">
-            <h2 id="ledger-title">Последние записи</h2>
-            <button type="button" class="text-button" id="download" hidden>Скачать копию</button>
-          </div>
-          <p class="list-caption" id="example-label">Пример журнала</p>
-          <ul class="entry-list" id="entries"></ul>
-          <p class="message" id="journal-error" role="alert" hidden></p>
-        </section>
-
-        <section class="composer" aria-labelledby="composer-title">
-          <div class="composer-header">
-            <div class="composer-heading">
-              <span class="expense-sign" aria-hidden="true">↘</span>
-              <h2 id="composer-title">Новый расход</h2>
-            </div>
-            <button type="button" class="icon-button" id="close-expense" aria-label="Закрыть форму">
-              <span class="icon icon-close" aria-hidden="true"></span>
-            </button>
-          </div>
-
-          <form id="expense-form" novalidate>
-            <div class="amount-block">
-              <label for="amount">Сумма</label>
-              <div class="amount-field">
-                <input id="amount" name="amount" type="text" inputmode="none" placeholder="0"
-                  autocomplete="off" aria-describedby="form-message" size="1">
-                <span aria-hidden="true">₽</span>
-              </div>
-            </div>
-
-            <div class="fields">
-              <label class="field field-account">
-                <span>Счёт</span>
-                <span class="select-wrap">
-                  <span id="account-dot" class="account-dot" aria-hidden="true"></span>
-                  <select id="account" name="account"></select>
-                </span>
-              </label>
-              <label class="field field-date">
-                <span>Дата</span>
-                <input id="expense-date" name="date" type="date" required>
-              </label>
-              <label class="field field-category">
-                <span>Категория</span>
-                <span class="select-wrap">
-                  <select id="category" name="category">
-                    <option value="">Без категории</option>
-                  </select>
-                </span>
-              </label>
-            </div>
-
-            <p class="message" id="form-message" role="status"></p>
-
-            <div class="keypad" id="keypad" role="group" aria-label="Цифровая клавиатура">
-              <button type="button" data-key="1">1</button>
-              <button type="button" data-key="2">2</button>
-              <button type="button" data-key="3">3</button>
-              <button type="button" data-key="4">4</button>
-              <button type="button" data-key="5">5</button>
-              <button type="button" data-key="6">6</button>
-              <button type="button" data-key="7">7</button>
-              <button type="button" data-key="8">8</button>
-              <button type="button" data-key="9">9</button>
-              <button type="button" data-key="," aria-label="Запятая">,</button>
-              <button type="button" data-key="0">0</button>
-              <button type="button" data-key="backspace" aria-label="Стереть последнюю цифру">⌫</button>
-            </div>
-            <button class="primary-button save-button" id="save-expense" type="submit">
-              Сохранить расход <span aria-hidden="true">↵</span>
-            </button>
-          </form>
-        </section>
-      </div>
+      <section id="directory" aria-labelledby="directory-title" hidden>
+        <header class="main-header">
+          <h1 id="directory-title">Счета и категории</h1>
+        </header>
+        <div class="section-heading directory-heading">
+          <h2>Счета</h2>
+          <button type="button" class="text-button" data-add="accounts">+ Счёт</button>
+        </div>
+        <div class="entries" id="accounts-list"></div>
+        <div class="section-heading directory-heading">
+          <h2>Группы</h2>
+          <button type="button" class="text-button" data-add="groups">+ Группа</button>
+        </div>
+        <ul class="entry-list" id="groups-list"></ul>
+        <div class="section-heading directory-heading">
+          <h2>Категории</h2>
+          <button type="button" class="text-button" data-add="categories">+ Категория</button>
+        </div>
+        <div class="entries" id="categories-list"></div>
+      </section>
     </main>
   </div>
-  <noscript>Включите JavaScript, чтобы записывать расходы.</noscript>
+
+  <button type="button" class="primary-button floating-add" id="show-expense" aria-label="Добавить операцию">
+    <span class="icon icon-plus" aria-hidden="true"></span><span class="floating-label">Операция</span>
+  </button>
+
+  <dialog class="composer" id="operation-dialog" aria-labelledby="composer-title">
+    <div class="composer-header">
+      <h2 id="composer-title">Новая операция</h2>
+      <button type="button" class="icon-button" data-close aria-label="Закрыть форму" autofocus>
+        <span class="icon icon-close" aria-hidden="true"></span>
+      </button>
+    </div>
+    <form id="expense-form" novalidate>
+      <div id="operation-types" class="type-switch" role="group" aria-label="Вид операции">
+        <button type="button" data-type="expense" aria-pressed="true">Расход</button>
+        <button type="button" data-type="income" aria-pressed="false">Доход</button>
+        <button type="button" data-type="transfer" aria-pressed="false">Перевод</button>
+      </div>
+      <div class="amount-block">
+        <label for="amount">Сумма</label>
+        <div class="amount-field">
+          <input id="amount" type="text" inputmode="none" placeholder="0" autocomplete="off"
+            aria-describedby="form-message" size="1">
+          <span aria-hidden="true">₽</span>
+        </div>
+      </div>
+      <div class="fields">
+        <label class="field field-account">
+          <span id="account-label">Счёт</span>
+          <span class="select-wrap">
+            <span id="account-dot" class="account-dot" aria-hidden="true"></span>
+            <select id="account"></select>
+          </span>
+        </label>
+        <label class="field field-date">
+          <span>Дата</span>
+          <input id="expense-date" type="date" min="0001-01-01" max="9999-12-31" required>
+        </label>
+        <label class="field field-category" id="category-field">
+          <span>Категория</span>
+          <span class="select-wrap"><select id="category"><option value="">Без категории</option></select></span>
+        </label>
+        <label class="field field-category" id="target-field" hidden>
+          <span>Куда</span>
+          <span class="select-wrap">
+            <span id="target-dot" class="account-dot" aria-hidden="true"></span>
+            <select id="target-account"></select>
+          </span>
+        </label>
+      </div>
+      <p class="message" id="form-message" role="status"></p>
+      <div class="keypad" id="keypad" role="group" aria-label="Цифровая клавиатура">
+        <button type="button" data-key="1">1</button>
+        <button type="button" data-key="2">2</button>
+        <button type="button" data-key="3">3</button>
+        <button type="button" data-key="4">4</button>
+        <button type="button" data-key="5">5</button>
+        <button type="button" data-key="6">6</button>
+        <button type="button" data-key="7">7</button>
+        <button type="button" data-key="8">8</button>
+        <button type="button" data-key="9">9</button>
+        <button type="button" data-key="," aria-label="Запятая">,</button>
+        <button type="button" data-key="0">0</button>
+        <button type="button" data-key="backspace" aria-label="Стереть последнюю цифру">⌫</button>
+      </div>
+      <button class="primary-button save-button" id="save-expense" type="submit">Сохранить расход</button>
+    </form>
+  </dialog>
+
+  <dialog class="composer editor" id="directory-dialog" aria-labelledby="editor-title">
+    <div class="composer-header">
+      <h2 id="editor-title"></h2>
+      <button type="button" class="icon-button" data-close aria-label="Закрыть форму">
+        <span class="icon icon-close" aria-hidden="true"></span>
+      </button>
+    </div>
+    <form id="directory-form" novalidate>
+      <label class="field"><span>Название</span><input id="record-name" type="text" maxlength="70" autocomplete="off" required autofocus></label>
+      <label class="field" id="group-field">
+        <span>Группа</span><span class="select-wrap"><select id="record-group"></select></span>
+      </label>
+      <label class="field" id="opening-field">
+        <span>Начальный остаток, ₽</span><input id="record-opening" inputmode="decimal" type="text" placeholder="0">
+      </label>
+      <label class="field" id="record-color-field">
+        <span>Цвет значка</span>
+        <span class="select-wrap">
+          <span id="record-color-dot" class="account-dot" aria-hidden="true"></span>
+          <select id="record-color">
+            <option value="mint">Мятный</option><option value="amber">Янтарный</option>
+            <option value="violet">Сиреневый</option><option value="sky">Голубой</option>
+            <option value="coral">Коралловый</option>
+          </select>
+        </span>
+      </label>
+      <label class="field" id="record-type-field">
+        <span>Вид операции</span>
+        <span class="select-wrap"><select id="record-type"><option value="expense">Расход</option><option value="income">Доход</option></select></span>
+      </label>
+      <p class="message" id="editor-message" role="status"></p>
+      <button class="primary-button save-button" id="save-record" type="submit">Сохранить</button>
+    </form>
+  </dialog>
+  <noscript>Включите JavaScript, чтобы записывать операции.</noscript>
 </body>
 </html>
